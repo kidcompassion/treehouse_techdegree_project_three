@@ -123,12 +123,6 @@ $(document).ready(function(){
     disableCompetingEvents = () => {
 
 
-        getDateData = () =>{
-            const selectedTimeBlock = $(this).attr('data-day-and-time');
-        }
- 
-
-
         //Set var to determine whether user is checking or unchecking a box
         let selected = false;
         
