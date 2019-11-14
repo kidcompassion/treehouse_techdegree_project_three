@@ -9,6 +9,11 @@ $(document).ready(function(){
     const colorField = $('#color');
 
 
+    // Payment Info Fieldset
+    const creditCardField = $('#credit-card');
+    const payPalField = $('#paypal');
+    const bitcoinField = $('#bitcoin');
+
     /**
      * Run this when form first loads 
      *  */ 
@@ -17,6 +22,8 @@ $(document).ready(function(){
         nameField.focus();
         // Hide secondary title field by default
         otherTitleField.hide();
+        payPalField.hide();
+        bitcoinField.hide();
     }
 
 
@@ -196,6 +203,45 @@ $(document).ready(function(){
        
     }
 
+
+
+    disableDefaultPaymentOption = () =>{
+        $('select#payment option:contains("Select Payment Method")').attr('disabled', 'true');
+    }
+
+    showCorrectPaymentOptions = () =>{
+        $('#payment').on('change', function(){
+            
+            const desiredPaymentMethod = $(this).children("option:selected").val();
+            const creditCardField = $('#credit-card');
+            
+
+            switch(desiredPaymentMethod){
+                case 'Credit Card':
+                    creditCardField.show();
+                    payPalField.hide();
+                    bitcoinField.hide();
+                break;
+                case 'PayPal':
+                    payPalField.show();
+                    creditCardField.hide();
+                    bitcoinField.hide();
+                break;
+                case 'Bitcoin':
+                    bitcoinField.show();
+                    payPalField.hide();
+                    creditCardField.hide();
+                break;
+                default:
+                    alert('Sorry, an error has occurred.');
+                break;
+            }
+
+        });
+    }
+
+
+
     onFormLoad();
     toggleJobRoleVisibility();
     setTShirtColorDefaultOption();
@@ -204,5 +250,7 @@ $(document).ready(function(){
     disableCompetingEvents();
 
     calculateRegistrationTotals();
+    disableDefaultPaymentOption();
+    showCorrectPaymentOptions();
 
 });
