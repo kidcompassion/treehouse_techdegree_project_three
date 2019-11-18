@@ -201,5 +201,8 @@ option {
 span.error {
 	display: block;
 	color: red;
+	background-color: pink;
+	border: solid 1px red;
+	font-size: 10px;
 	padding: 4px;
 }

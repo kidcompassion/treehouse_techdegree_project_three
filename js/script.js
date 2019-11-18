@@ -3,7 +3,6 @@ $(document).ready(function(){
     const nameField = $('#name');
     const emailField = $('#mail');
     const titleField = $('#title');
-    
     const otherTitleField = $('#other-title');
     
     //T-Shirt Info FieldSet
@@ -11,19 +10,25 @@ $(document).ready(function(){
     const colorField = $('#color');
     const colorFieldWrapper = $('#colors-js-puns');
 
-
     // Payment Info Fieldset
     const creditCardField = $('#credit-card');
     const payPalField = $('#paypal');
     const bitcoinField = $('#bitcoin');
+    
+    //Set up var for desiredpaymentmethod so I can access it globally
+    let desiredPaymentMethod = $('#payment').children("option:selected").val();
+
+    // Check for errors
+    let errorsExist = false;
 
     /**
      * Run this when form first loads 
      *  */ 
+
     onFormLoad=()=> {
         // Move focus to name field on load
         nameField.focus();
-        // Hide secondary title field by default
+        // Hide all conditional fields on load
         otherTitleField.hide();
         payPalField.hide();
         bitcoinField.hide();
@@ -35,6 +40,7 @@ $(document).ready(function(){
     /** 
      * Toggle field visibility depending on selected title 
      * */ 
+
     toggleJobRoleVisibility = (  )=>{
         // As soon as the primary job role changes, switch on the visibility for the secondary title
         titleField.on('change', function(){
@@ -49,6 +55,7 @@ $(document).ready(function(){
     /**
      * Hide all color options by default
      */
+
     hideAllTShirtColors = () =>{
         colorFieldWrapper.hide();
         colorField.find('option').hide();
@@ -71,10 +78,13 @@ $(document).ready(function(){
      * and reveal the child color options
      */
     selectTShirtDesign = ()=>{
+        // when design selected changes...
         designField.on('change', function(){
+            // grab the option text
             const str = $('#design option:selected').text();
-            
+            //run reg ex to find matching options
             showColorBasedOnTheme(str);
+            //show color select
             colorFieldWrapper.show();
         });
     }
@@ -125,15 +135,14 @@ $(document).ready(function(){
     }
     
     
-  
-    /* SCHEDULING */
+    /**
+     * EVent Registration 
+    */
 
     disableCompetingEvents = () => {
-
-
         //Set var to determine whether user is checking or unchecking a box
         let selected = false;
-        
+
         $(':checkbox').on('change', function(e){
             // Check if checking or unchecking, and update selected var
             if(e.target.checked === true){
@@ -146,7 +155,6 @@ $(document).ready(function(){
             const selectedTimeBlock = $(this).attr('data-day-and-time');
             //Get data attr showing name for clicked elem
             const selectedTimeName = $(this).attr('name');
-            
 
             // Loop through all checkboxes...
             $('.activities :checkbox').each(function() {
@@ -161,72 +169,76 @@ $(document).ready(function(){
                     }
                 }
             });
-                     
-          
-
         });
-    
-       
-
-
     }
 
 
+    /**
+     * Keep running tally of the event admission totals
+     */
     calculateRegistrationTotals = (e) => {
-         let finalCost = 0;
-         let runningCost = [0];
+         
+        let finalCost = 0; //Start total amount at 0
+        let runningCost = [0]; //Set up array to keep track of all selected amounts
       
-         $(':checkbox').on('change', function(e){
+        // When user changes checkboxes...
+        $(':checkbox').on('change', function(e){
+            //..trim the $ sign off the data value
             let eventCost = $(e.target).attr('data-cost').slice(1);
+            //make sure value is an int
             eventCost = parseInt(eventCost);
-         if($(e.target).is(':checked')){
-                 runningCost.push(eventCost);
+        
+            //if a checkbox is selected, add the corresponding value into the array
+            if($(e.target).is(':checked')){
+                runningCost.push(eventCost);
+            // If it's unchecked, take it out of the array
+            } else if(!$(e.target).is(':checked'))  {
+                let index = runningCost.indexOf(parseInt(eventCost));
+                runningCost.splice( index, 1);
+            }
             
-             
-         } else if(!$(e.target).is(':checked'))  {
-           console.log('blong');
-           let index = runningCost.indexOf(parseInt(eventCost));
-         
-           //console.log(eventCost);
-               runningCost.splice( index, 1);
-         }
-         
+            // Add up the amount total
+            finalCost = runningCost.reduce((a, b) => a + b, 0); 
 
-        finalCost = runningCost.reduce((a, b) => a + b, 0);
-
-         if($('#registrationTotal').length > 0){
-             $('#registrationTotal').remove();
-         }
-         $('.activities').append('<span id="registrationTotal">Total: $' + finalCost + '</span>');
-         
+            // Check if there is a total showing on the page; if there is, remove it before updating to avoid repeating values
+            if($('#registrationTotal').length > 0){
+                $('#registrationTotal').remove();
+            }
+            //Append updated total to the activities class
+            $('.activities').append('<span id="registrationTotal">Total: $' + finalCost + '</span>'); 
         });
-   
-       
-       
     }
 
 
+    /**
+     * Disable the select payment option by default
+     */
 
     disableDefaultPaymentOption = () =>{
         $('select#payment option:contains("Select Payment Method")').attr('disabled', 'true');
+        // Set the select to show credit card by default
         $('select#payment option:contains("Credit Card")').attr('selected', 'selected');
     }
 
-    showCorrectPaymentOptions = () =>{
-        $('#payment').on('change', function(){
-            
-            const desiredPaymentMethod = $(this).children("option:selected").val();
-            const creditCardField = $('#credit-card');
-            
+    /**
+     * Toggle the payment fields on and off depending on the selected payment option
+     */
 
+    showCorrectPaymentOptions = () =>{
+        // When user changes the payment select
+        $('#payment').on('change', function(){     
+            //..grab the value of the selected options
+            desiredPaymentMethod = $(this).children("option:selected").val();
+   
+            // run the value from the select through a switch to determine what to show and hide, and what to validate
             switch(desiredPaymentMethod){
                 case 'Credit Card':
                     creditCardField.show();
+                    payPalField.hide();
+                    bitcoinField.hide();
                     creditCardNumberValidation();
                     zipCodeNumberValidation();
                     cvvNumberValidation();
-                    payPalField.hide();
-                    bitcoinField.hide();
                 break;
                 case 'PayPal':
                     payPalField.show();
@@ -239,103 +251,135 @@ $(document).ready(function(){
                     creditCardField.hide();
                 break;
                 default:
-                    alert('Sorry, an error has occurred.');
+                    alert('Sorry, an error has occurred. Please try again later.');
                 break;
             }
-
         });
     }
 
 
-
-
     /**
-     * VALIDATION
+     * VALIDATION FUNCTIONS
      */
 
 
 
+    /**
+     * InsertErrorMsg: takes a specific field, a specific error message, and a specific error class
+     */
     insertErrorMsg = (field, message, fieldClass) =>{
+        removeErrorMsg(fieldClass);
+        // Add an error message above the field in question
         $('<span class="error '+ fieldClass + '">'+message+'</span>').insertBefore(field);
+        // Set errorsExist to True
+        errorsExist = true;
     }
+
+    /**
+     * removeErrorMsg: takes fieldclass 
+     */
     removeErrorMsg = (fieldClass) => {
+        //if error class exists, remove it so we don't have repeating errors
         if(fieldClass.length > 0){
             $('.' + fieldClass).remove();
         }
+        //set errorsexist to false
+        errorsExist = false;
     }
     
 
+    /**
+     * Creates validation for the name fiels
+     */
     nameValidation = (nameField) =>{
-        // When user leaves name field, check validation
         const nameErrorMsg = 'Name field cannot be blank';
         const nameErrorClass= 'name-field-error';
-        nameField.on('blur', function(){
-
-            const nameValue = nameField.val();
+        const nameValue = nameField.val();
             
-            if(nameValue === ''){
-                insertErrorMsg(nameField, nameErrorMsg, nameErrorClass);
-            }else {
-                removeErrorMsg(nameErrorClass);
-            }
-        });
+        // If field is empty, throw an error
+        if(nameValue === ''){
+            insertErrorMsg(nameField, nameErrorMsg, nameErrorClass);
+        }else {
+            removeErrorMsg(nameErrorClass);
+        }
     }
 
 
-
+    /**
+     * Creates validation for the email field
+     */
     emailValidation = (emailField) =>{
         // Set up info for error
         const emailErrorMsg1 = 'Email field cannot be blank';
         const emailErrorMsg2 = 'Please provide a valid email';
         const emailErrorClass= 'email-field-error';
 
-        //use literal syntax bc it performs better
+        // Check: 
         // If string has only alphanumeric characters before the @
-            // is there is at least one . after the @
+        // If string has at least one . after the @
         const emailRegEx = /^[^@]+@[^@.]+\.[a-z]+$/i;
-
-  
-        emailField.on('blur', function(){
-
-            const emailValue = emailField.val();
+        const emailValue = emailField.val();
             
-            // If email is not set...
-            if(emailValue === ''){
-                //remove any existing errors to avoid them stacking up
-                removeErrorMsg(emailErrorClass);
-                //insert error message
-                insertErrorMsg(emailField, emailErrorMsg1, emailErrorClass);
-            } 
-            
-            // check for valid email format; if it's not valid...
-            else if (emailRegEx.test(emailValue) === false){
-                //remove any existing errors to avoid them stacking up
-                removeErrorMsg(emailErrorClass);
-                //insert error message
-                insertErrorMsg(emailField, emailErrorMsg2, emailErrorClass);
-            } 
-            else{
-                // remove any error classes
-                removeErrorMsg(emailErrorClass);
-            }
-        });
+        // If email is not set...
+        if(emailValue === ''){
+            //remove any existing errors to avoid them stacking up
+            removeErrorMsg(emailErrorClass);
+            //insert error message
+            insertErrorMsg(emailField, emailErrorMsg1, emailErrorClass);
+        }     
+        // check for valid email format; if it's not valid...
+        else if (emailRegEx.test(emailValue) === false){
+            //remove any existing errors to avoid them stacking up
+            removeErrorMsg(emailErrorClass);
+            //insert error message
+            insertErrorMsg(emailField, emailErrorMsg2, emailErrorClass);
+        } 
+        else{
+            // remove any error classes
+            removeErrorMsg(emailErrorClass);
+        }
     }
 
 
+    /**
+     * Creates validation for the other title field
+     */
+
+    otherTitleValidation = (otherTitleField) =>{
+        const otherErrorMsg = 'Other title cannot be blank';
+        const otherErrorClass= 'other-field-error';
+        const otherTitleValue = otherTitleField.val();
+        // If the title Field is set to other...
+        if(titleField.val() === 'other'){
+            //Check whether the other title field has anything in it
+            if(otherTitleValue === ''){
+                insertErrorMsg(otherTitleField, otherErrorMsg, otherErrorClass);
+            }else {
+                removeErrorMsg(otherErrorClass);
+            }
+        }
+    }
+
+    /**
+     * Creates validation for the event registration
+     */
+
     registrationValidation=()=>{
-        // Set up info for error
         const registrationErrorMsg = 'Please choose at least one event';
         const registrationErrorClass= 'registration-field-error';
         const registrationEvents = $('.activities input[type="checkbox"]:checked');
+        // check how many boxes are selected
         const checkedEvents = $(registrationEvents).length;
         
         if(checkedEvents === 0){
+            removeErrorMsg(registrationErrorClass);
             insertErrorMsg($('.activities legend'), registrationErrorMsg, registrationErrorClass);
         } 
-        
     }
 
-
+    /**
+     * Creates validation for the Credit Card Number Field
+     */
 
     creditCardNumberValidation = ()=>{
         const cardNumberField = $('#cc-num');
@@ -343,88 +387,108 @@ $(document).ready(function(){
         const cardNumberTypeErrorMsg = 'CC Number is made up of numbers only';
         const cardNumberLengthErrorMsg = 'CC Number should have between 13 and 16 digits';
         const cardNumberErrorClass = 'card-error';
-        cardNumberField.on('blur', function(){
-        
-            const cardNumberVal = cardNumberField.val();
-            
-            if(cardNumberVal === ''){
-            
-                insertErrorMsg(cardNumberField, cardNumberEmptyErrorMsg, cardNumberErrorClass);
-            }else if( isNaN(cardNumberVal) ){
-                insertErrorMsg(cardNumberField, cardNumberTypeErrorMsg, cardNumberErrorClass);
-            }else if(cardNumberVal.length > 13 && cardNumberVal.length < 16 ){
-                insertErrorMsg(cardNumberField, cardNumberLengthErrorMsg, cardNumberErrorClass);
-            }else{
-                removeErrorMsg(cardNumberErrorClass);
-            }
-        });
+        const cardNumberVal = cardNumberField.val();
+          
+        // If card number field is empty, throw an error
+        if(cardNumberVal === ''){
+            insertErrorMsg(cardNumberField, cardNumberEmptyErrorMsg, cardNumberErrorClass);
+        // If card number field contains anything but numbers, throw an error
+        }else if( isNaN(cardNumberVal) ){
+            insertErrorMsg(cardNumberField, cardNumberTypeErrorMsg, cardNumberErrorClass);
+        // If card number field doesn't have 13-16 numbers, throw an error
+        }else if(cardNumberVal.length < 13 || cardNumberVal.length > 17  ){
+            insertErrorMsg(cardNumberField, cardNumberLengthErrorMsg, cardNumberErrorClass);
+        }else{
+            removeErrorMsg(cardNumberErrorClass);
+        }
     }
 
-
+    /**
+     * Creates validation for the Zipcode Number Field
+     */
 
     zipCodeNumberValidation = ()=>{
-        //if is numbers
-        //if between 13 to 16 digits
-
         const zipCodeField = $('#zip');
-
         const zipCodeEmptyErrorMsg = 'Zipcode cannot be blank';
         const zipCodeTypeErrorMsg = 'Zipcode is made up of numbers only';
         const zipCodeLengthErrorMsg = 'Zipcode should have 5 digits';
         const zipCodeErrorClass = 'zipcode-error';
+        const zipCodeVal = zipCodeField.val();
 
-        zipCodeField.on('blur', function(){
-                
-            const zipCodeVal = zipCodeField.val();
-            if(zipCodeVal ==='') {
-                insertErrorMsg(zipCodeField, zipCodeEmptyErrorMsg, zipCodeErrorClass);
-            }
-            else if(isNaN(zipCodeVal)){
-                insertErrorMsg(zipCodeField, zipCodeTypeErrorMsg, zipCodeErrorClass);
-            }else if(zipCodeVal.length != 5){
-                insertErrorMsg(zipCodeField, zipCodeLengthErrorMsg, zipCodeErrorClass);
-            }else{
-                removeErrorMsg(zipCodeErrorClass);
-            }
-        });
+        // If Zipcode field has no content, throw an error
+        if(zipCodeVal ==='') {
+            insertErrorMsg(zipCodeField, zipCodeEmptyErrorMsg, zipCodeErrorClass);
+        }
+        // If Zipcode field contains anything but numbers, throw an error
+        else if(isNaN(zipCodeVal)){
+            removeErrorMsg(zipCodeErrorClass);
+            insertErrorMsg(zipCodeField, zipCodeTypeErrorMsg, zipCodeErrorClass);
+        // If zipcode field isn't 5 numbers long, throw an error
+        }else if(zipCodeVal.length != 5){
+            removeErrorMsg(zipCodeErrorClass);
+            insertErrorMsg(zipCodeField, zipCodeLengthErrorMsg, zipCodeErrorClass);
+        }else{
+            removeErrorMsg(zipCodeErrorClass);
+        }
     }
 
-    
+    /**
+     * Creates validation for the CVV Number Field
+     */
     cvvNumberValidation = ()=>{
         const cvvNumberField = $('#cvv');
         const cvvNumberEmptyErrorMsg = 'CVV cannot be empty';
         const cvvNumberTypeErrorMsg = 'CVV is made up of numbers only';
         const cvvNumberLengthErrorMsg = 'CVV should have 3 digits';
         const cvvNumberErrorClass = 'cvv-error';
-
-        cvvNumberField.on('blur', function(){
-            const cvvNumberVal = cvvNumberField.val();
-      
-
-
-            if(cvvNumberVal === ''){
-                insertErrorMsg(cvvNumberField, cvvNumberEmptyErrorMsg, cvvNumberErrorClass);
-            }else if(isNaN(cvvNumberVal)){
-                insertErrorMsg(cvvNumberField, cvvNumberTypeErrorMsg, cvvNumberErrorClass);
-            }else if(zipCodeVal.length != 5){
-                insertErrorMsg(cvvNumberField, cvvNumberLengthErrorMsg, cvvNumberErrorClass);
-            }else{
-                removeErrorMsg(cvvNumberErrorClass);
-            }
-        });
-
+        const cvvNumberVal = cvvNumberField.val();
+    
+        // If field is blank, throw an error
+        if(cvvNumberVal === ''){
+            removeErrorMsg(cvvNumberErrorClass);
+            insertErrorMsg(cvvNumberField, cvvNumberEmptyErrorMsg, cvvNumberErrorClass);
+        // if field contains anything other than numbers, throw an error
+        }else if(isNaN(cvvNumberVal)){
+            removeErrorMsg(cvvNumberErrorClass);
+            insertErrorMsg(cvvNumberField, cvvNumberTypeErrorMsg, cvvNumberErrorClass);
+        // if field doesn't have 3 numbers, throw an error
+        }else if(cvvNumberVal.length != 3){
+            removeErrorMsg(cvvNumberErrorClass);
+            insertErrorMsg(cvvNumberField, cvvNumberLengthErrorMsg, cvvNumberErrorClass);
+        }else{
+            removeErrorMsg(cvvNumberErrorClass);
+        }
     }
 
-    preventFormSubmit = () => {
-        const submitBtn = $('input[type="submit"]');
+    formSubmit = () => {
+        // Grab the form so we can hook into its submit
         const form = $('form');
-
+        //Get rid of all errors on submit, to avoid duplicating errors
+        $('.error').remove();
+        //On submit...
         form.submit(function(e){
+            //..validate the name field
+            nameValidation(nameField);
+            //..validate the email field
+            emailValidation(emailField);
+            otherTitleValidation(otherTitleField);
+            //..validate the event checkboxes
             registrationValidation();
-            creditCardNumberValidation();
-            zipCodeNumberValidation();
-            cvvNumberValidation();
-            e.preventDefault();
+            //..validate the CC fields
+            console.log(desiredPaymentMethod);
+            // If the payment method is the default or credit card, run credit card validation
+            if(desiredPaymentMethod === 'Credit Card' || desiredPaymentMethod === 'select method'){
+                creditCardNumberValidation();
+                zipCodeNumberValidation();
+                cvvNumberValidation();
+            }
+            // If errorsExist is true, don't let the form submit
+            if(errorsExist === true){
+                e.preventDefault();
+            }else {
+                $('.container').html('<h1>You are now registered for the conference!</h1>');
+            }
+            
         });
         
     }
@@ -432,28 +496,8 @@ $(document).ready(function(){
 
     
 
-   preventFormSubmit();
-    //Name field can't be blank.
-    // Error Message- User Name Cannot be Blank. Please enter your name.
+   formSubmit();
 
-  //validateField(nameField);
-
-    //Email field must be a validly formatted e-mail address (you don't have to check that it's a real e-mail address, just that it's formatted like one: dave@teamtreehouse.com for example.
-    // Email cannot be blank. Please enter your email address.
-    //Please enter a valid email address. This address has a problem format.
-    //validateField(emailField);
-    
-    //User must select at least one checkbox under the "Register for Activities" section of the form.
-    // You must select at least one activity
-    /**
-     * If the selected payment option is "Credit Card," make sure the user has supplied a Credit Card number, a Zip Code, and a 3 number CVV value before the form can be submitted.
-Credit Card field should only accept a number between 13 and 16 digits.
-// This is not a valid CC number
-The Zip Code field should accept a 5-digit number.
-//This is not a valid zipcode
-The CVV should only accept a number that is exactly 3 digits long.
-//This is not a valid CVV
-     */
 
     onFormLoad();
     toggleJobRoleVisibility();
@@ -467,11 +511,23 @@ The CVV should only accept a number that is exactly 3 digits long.
     showCorrectPaymentOptions();
 
 
-    nameValidation(nameField);
+
+
+
+    nameField.on('blur', function(){
+        nameValidation(nameField);
+    });
+
+
+    emailField.on('blur', function(){
+        emailValidation(emailField);
+    });
+
+   /* nameValidation(nameField);
     emailValidation(emailField);
     creditCardNumberValidation();
     zipCodeNumberValidation();
-    cvvNumberValidation();
+    cvvNumberValidation();*/
     
 
 });
