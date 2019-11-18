@@ -134,9 +134,8 @@ $(document).ready(function(){
         } 
     }
     
-    
     /**
-     * EVent Registration 
+     * Event Registration 
     */
 
     disableCompetingEvents = () => {
@@ -467,6 +466,7 @@ $(document).ready(function(){
         $('.error').remove();
         //On submit...
         form.submit(function(e){
+
             //..validate the name field
             nameValidation(nameField);
             //..validate the email field
@@ -474,60 +474,43 @@ $(document).ready(function(){
             otherTitleValidation(otherTitleField);
             //..validate the event checkboxes
             registrationValidation();
-            //..validate the CC fields
-            console.log(desiredPaymentMethod);
+
             // If the payment method is the default or credit card, run credit card validation
             if(desiredPaymentMethod === 'Credit Card' || desiredPaymentMethod === 'select method'){
                 creditCardNumberValidation();
                 zipCodeNumberValidation();
                 cvvNumberValidation();
             }
+
             // If errorsExist is true, don't let the form submit
             if(errorsExist === true){
                 e.preventDefault();
             }else {
-                $('.container').html('<h1>You are now registered for the conference!</h1>');
+                $('.container').html('<h1 class="success-msg">You are now registered for the conference!</h1>');
             }
-            
         });
-        
     }
 
-
-    
-
-   formSubmit();
-
-
-    onFormLoad();
-    toggleJobRoleVisibility();
-    setTShirtColorDefaultOption();
-    selectTShirtDesign();
-
-    disableCompetingEvents();
-
-    calculateRegistrationTotals();
-    disableDefaultPaymentOption();
-    showCorrectPaymentOptions();
-
-
-
-
-
+    /**
+     * Add inline validation for name and email fields
+     */
     nameField.on('blur', function(){
         nameValidation(nameField);
     });
-
-
     emailField.on('blur', function(){
         emailValidation(emailField);
     });
 
-   /* nameValidation(nameField);
-    emailValidation(emailField);
-    creditCardNumberValidation();
-    zipCodeNumberValidation();
-    cvvNumberValidation();*/
-    
-
+    /**
+     * Load all default functionality
+     */
+    onFormLoad();
+    toggleJobRoleVisibility();
+    setTShirtColorDefaultOption();
+    selectTShirtDesign();
+    disableCompetingEvents();
+    calculateRegistrationTotals();
+    disableDefaultPaymentOption();
+    showCorrectPaymentOptions();
+    formSubmit();
 });

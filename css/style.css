@@ -2,7 +2,7 @@
   Base Element Styles
 ==================================== */
 
-@import url('https://fonts.googleapis.com/css?family=Nunito|Roboto+Mono');
+@import url('https://fonts.googleapis.com/css?family=Alata&display=swap');
 
 * {
   box-sizing: border-box;
@@ -11,13 +11,13 @@
 body,
 input,
 button {
-	font-family: 'Nunito', sans-serif;
+	font-family: 'Alata', sans-serif;
 }
 
 body {
   font: 1em/1.5;
-  color: rgba(6, 49, 68, 0.9);
-	background: #CDE0FB;
+  color:#333;
+  background: #ccc;
 }
 
 header {
@@ -40,7 +40,7 @@ a {
 
 form {
 	padding: .875em 1.875em 1.875em;
-	background: #9BBEEF;
+	background: #e5e5e5;
 	border: 2px solid rgba(8, 63, 87, 0.7);
 	border-radius: 3px;
 }
@@ -75,7 +75,7 @@ legend {
 }
 
 label {
-	color: #000;
+	color: #333;
 	display: block;
 	margin-bottom: .5em;
 }
@@ -205,4 +205,12 @@ span.error {
 	border: solid 1px red;
 	font-size: 10px;
 	padding: 4px;
+}
+
+h1.success-msg {
+	padding: 60px;
+	text-align: center;
+	background-color: green;
+	color: white;
+	text-shadow: none;
 }
