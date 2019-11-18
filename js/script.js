@@ -171,7 +171,6 @@ $(document).ready(function(){
         });
     }
 
-
     /**
      * Keep running tally of the event admission totals
      */
@@ -208,13 +207,13 @@ $(document).ready(function(){
         });
     }
 
-
     /**
      * Disable the select payment option by default
      */
 
     disableDefaultPaymentOption = () =>{
-        $('select#payment option:contains("Select Payment Method")').attr('disabled', 'true');
+        //Remove the select payment method option
+        $('select#payment option:contains("Select Payment Method")').remove();
         // Set the select to show credit card by default
         $('select#payment option:contains("Credit Card")').attr('selected', 'selected');
     }
@@ -256,12 +255,9 @@ $(document).ready(function(){
         });
     }
 
-
     /**
      * VALIDATION FUNCTIONS
      */
-
-
 
     /**
      * InsertErrorMsg: takes a specific field, a specific error message, and a specific error class
