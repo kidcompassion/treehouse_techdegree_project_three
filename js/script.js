@@ -1,12 +1,15 @@
 $(document).ready(function(){
     //Basic Info Fieldset
     const nameField = $('#name');
+    const emailField = $('#mail');
     const titleField = $('#title');
+    
     const otherTitleField = $('#other-title');
     
     //T-Shirt Info FieldSet
     const designField = $('#design');
     const colorField = $('#color');
+    const colorFieldWrapper = $('#colors-js-puns');
 
 
     // Payment Info Fieldset
@@ -47,11 +50,13 @@ $(document).ready(function(){
      * Hide all color options by default
      */
     hideAllTShirtColors = () =>{
+        colorFieldWrapper.hide();
         colorField.find('option').hide();
     }
 
     /**
      * Create a default "please select a t shirt theme option"
+     * (I know the point of this exercise is to use jQuery, but I just wanted to do something in vanilla JS because it's the weaker of my skillsets)
      */
     setTShirtColorDefaultOption = () =>{
         const newOption = document.createElement('option');
@@ -68,7 +73,9 @@ $(document).ready(function(){
     selectTShirtDesign = ()=>{
         designField.on('change', function(){
             const str = $('#design option:selected').text();
+            
             showColorBasedOnTheme(str);
+            colorFieldWrapper.show();
         });
     }
 
@@ -76,6 +83,7 @@ $(document).ready(function(){
      * Show the corresponding colors for the select shirt type
      */
     showColorBasedOnTheme = (str) => {
+        
         //Hide all T-shirt colors by default, to avoid showing everything
         hideAllTShirtColors();
 
@@ -201,6 +209,7 @@ $(document).ready(function(){
 
     disableDefaultPaymentOption = () =>{
         $('select#payment option:contains("Select Payment Method")').attr('disabled', 'true');
+        $('select#payment option:contains("Credit Card")').attr('selected', 'selected');
     }
 
     showCorrectPaymentOptions = () =>{
@@ -213,6 +222,9 @@ $(document).ready(function(){
             switch(desiredPaymentMethod){
                 case 'Credit Card':
                     creditCardField.show();
+                    creditCardNumberValidation();
+                    zipCodeNumberValidation();
+                    cvvNumberValidation();
                     payPalField.hide();
                     bitcoinField.hide();
                 break;
@@ -236,6 +248,213 @@ $(document).ready(function(){
 
 
 
+
+    /**
+     * VALIDATION
+     */
+
+
+
+    insertErrorMsg = (field, message, fieldClass) =>{
+        $('<span class="error '+ fieldClass + '">'+message+'</span>').insertBefore(field);
+    }
+    removeErrorMsg = (fieldClass) => {
+        if(fieldClass.length > 0){
+            $('.' + fieldClass).remove();
+        }
+    }
+    
+
+    nameValidation = (nameField) =>{
+        // When user leaves name field, check validation
+        const nameErrorMsg = 'Name field cannot be blank';
+        const nameErrorClass= 'name-field-error';
+        nameField.on('blur', function(){
+
+            const nameValue = nameField.val();
+            
+            if(nameValue === ''){
+                insertErrorMsg(nameField, nameErrorMsg, nameErrorClass);
+            }else {
+                removeErrorMsg(nameErrorClass);
+            }
+        });
+    }
+
+
+
+    emailValidation = (emailField) =>{
+        // Set up info for error
+        const emailErrorMsg1 = 'Email field cannot be blank';
+        const emailErrorMsg2 = 'Please provide a valid email';
+        const emailErrorClass= 'email-field-error';
+
+        //use literal syntax bc it performs better
+        // If string has only alphanumeric characters before the @
+            // is there is at least one . after the @
+        const emailRegEx = /^[^@]+@[^@.]+\.[a-z]+$/i;
+
+  
+        emailField.on('blur', function(){
+
+            const emailValue = emailField.val();
+            
+            // If email is not set...
+            if(emailValue === ''){
+                //remove any existing errors to avoid them stacking up
+                removeErrorMsg(emailErrorClass);
+                //insert error message
+                insertErrorMsg(emailField, emailErrorMsg1, emailErrorClass);
+            } 
+            
+            // check for valid email format; if it's not valid...
+            else if (emailRegEx.test(emailValue) === false){
+                //remove any existing errors to avoid them stacking up
+                removeErrorMsg(emailErrorClass);
+                //insert error message
+                insertErrorMsg(emailField, emailErrorMsg2, emailErrorClass);
+            } 
+            else{
+                // remove any error classes
+                removeErrorMsg(emailErrorClass);
+            }
+        });
+    }
+
+
+    registrationValidation=()=>{
+        // Set up info for error
+        const registrationErrorMsg = 'Please choose at least one event';
+        const registrationErrorClass= 'registration-field-error';
+        const registrationEvents = $('.activities input[type="checkbox"]:checked');
+        const checkedEvents = $(registrationEvents).length;
+        
+        if(checkedEvents === 0){
+            insertErrorMsg($('.activities legend'), registrationErrorMsg, registrationErrorClass);
+        } 
+        
+    }
+
+
+
+    creditCardNumberValidation = ()=>{
+        const cardNumberField = $('#cc-num');
+        const cardNumberEmptyErrorMsg = 'CC Number cannot be empty';
+        const cardNumberTypeErrorMsg = 'CC Number is made up of numbers only';
+        const cardNumberLengthErrorMsg = 'CC Number should have between 13 and 16 digits';
+        const cardNumberErrorClass = 'card-error';
+        cardNumberField.on('blur', function(){
+        
+            const cardNumberVal = cardNumberField.val();
+            
+            if(cardNumberVal === ''){
+            
+                insertErrorMsg(cardNumberField, cardNumberEmptyErrorMsg, cardNumberErrorClass);
+            }else if( isNaN(cardNumberVal) ){
+                insertErrorMsg(cardNumberField, cardNumberTypeErrorMsg, cardNumberErrorClass);
+            }else if(cardNumberVal.length > 13 && cardNumberVal.length < 16 ){
+                insertErrorMsg(cardNumberField, cardNumberLengthErrorMsg, cardNumberErrorClass);
+            }else{
+                removeErrorMsg(cardNumberErrorClass);
+            }
+        });
+    }
+
+
+
+    zipCodeNumberValidation = ()=>{
+        //if is numbers
+        //if between 13 to 16 digits
+
+        const zipCodeField = $('#zip');
+
+        const zipCodeEmptyErrorMsg = 'Zipcode cannot be blank';
+        const zipCodeTypeErrorMsg = 'Zipcode is made up of numbers only';
+        const zipCodeLengthErrorMsg = 'Zipcode should have 5 digits';
+        const zipCodeErrorClass = 'zipcode-error';
+
+        zipCodeField.on('blur', function(){
+                
+            const zipCodeVal = zipCodeField.val();
+            if(zipCodeVal ==='') {
+                insertErrorMsg(zipCodeField, zipCodeEmptyErrorMsg, zipCodeErrorClass);
+            }
+            else if(isNaN(zipCodeVal)){
+                insertErrorMsg(zipCodeField, zipCodeTypeErrorMsg, zipCodeErrorClass);
+            }else if(zipCodeVal.length != 5){
+                insertErrorMsg(zipCodeField, zipCodeLengthErrorMsg, zipCodeErrorClass);
+            }else{
+                removeErrorMsg(zipCodeErrorClass);
+            }
+        });
+    }
+
+    
+    cvvNumberValidation = ()=>{
+        const cvvNumberField = $('#cvv');
+        const cvvNumberEmptyErrorMsg = 'CVV cannot be empty';
+        const cvvNumberTypeErrorMsg = 'CVV is made up of numbers only';
+        const cvvNumberLengthErrorMsg = 'CVV should have 3 digits';
+        const cvvNumberErrorClass = 'cvv-error';
+
+        cvvNumberField.on('blur', function(){
+            const cvvNumberVal = cvvNumberField.val();
+      
+
+
+            if(cvvNumberVal === ''){
+                insertErrorMsg(cvvNumberField, cvvNumberEmptyErrorMsg, cvvNumberErrorClass);
+            }else if(isNaN(cvvNumberVal)){
+                insertErrorMsg(cvvNumberField, cvvNumberTypeErrorMsg, cvvNumberErrorClass);
+            }else if(zipCodeVal.length != 5){
+                insertErrorMsg(cvvNumberField, cvvNumberLengthErrorMsg, cvvNumberErrorClass);
+            }else{
+                removeErrorMsg(cvvNumberErrorClass);
+            }
+        });
+
+    }
+
+    preventFormSubmit = () => {
+        const submitBtn = $('input[type="submit"]');
+        const form = $('form');
+
+        form.submit(function(e){
+            registrationValidation();
+            creditCardNumberValidation();
+            zipCodeNumberValidation();
+            cvvNumberValidation();
+            e.preventDefault();
+        });
+        
+    }
+
+
+    
+
+   preventFormSubmit();
+    //Name field can't be blank.
+    // Error Message- User Name Cannot be Blank. Please enter your name.
+
+  //validateField(nameField);
+
+    //Email field must be a validly formatted e-mail address (you don't have to check that it's a real e-mail address, just that it's formatted like one: dave@teamtreehouse.com for example.
+    // Email cannot be blank. Please enter your email address.
+    //Please enter a valid email address. This address has a problem format.
+    //validateField(emailField);
+    
+    //User must select at least one checkbox under the "Register for Activities" section of the form.
+    // You must select at least one activity
+    /**
+     * If the selected payment option is "Credit Card," make sure the user has supplied a Credit Card number, a Zip Code, and a 3 number CVV value before the form can be submitted.
+Credit Card field should only accept a number between 13 and 16 digits.
+// This is not a valid CC number
+The Zip Code field should accept a 5-digit number.
+//This is not a valid zipcode
+The CVV should only accept a number that is exactly 3 digits long.
+//This is not a valid CVV
+     */
+
     onFormLoad();
     toggleJobRoleVisibility();
     setTShirtColorDefaultOption();
@@ -246,5 +465,13 @@ $(document).ready(function(){
     calculateRegistrationTotals();
     disableDefaultPaymentOption();
     showCorrectPaymentOptions();
+
+
+    nameValidation(nameField);
+    emailValidation(emailField);
+    creditCardNumberValidation();
+    zipCodeNumberValidation();
+    cvvNumberValidation();
+    
 
 });

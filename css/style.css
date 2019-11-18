@@ -197,3 +197,9 @@ option {
 		clear: both;
 	}
 }
+
+span.error {
+	display: block;
+	color: red;
+	padding: 4px;
+}
